@@ -2158,6 +2158,32 @@ class DatabaseEloquentBuilderTest extends TestCase
         $this->assertEquals(2, $result);
     }
 
+    public function testUpsertWithDataArray()
+    {
+        Carbon::setTestNow($now = '2017-10-10 10:10:10');
+
+        $query = m::mock(BaseBuilder::class);
+        $query->shouldReceive('from')->with('foo_table')->andReturn('foo_table');
+        $query->from = 'foo_table';
+
+        $builder = new Builder($query);
+        $model = new EloquentBuilderTestStubStringPrimaryKey;
+        $builder->setModel($model);
+
+        $query->shouldReceive('upsert')->once()
+            ->with([
+                ['email' => 'foo', 'name' => 'bar', 'data' => ['name' => 'foo', 'email' => 'bar'],'updated_at' => $now, 'created_at' => $now],
+                ['name' => 'bar2', 'email' => 'foo2', 'data' => ['name' => 'foo', 'email' => 'bar'], 'updated_at' => $now, 'created_at' => $now],
+            ], ['email'], ['email', 'name', 'updated_at'])->andReturn(2);
+
+        $result = $builder->upsert([
+            ['email' => 'foo', 'name' => 'bar', 'data' => ['name' => 'foo', 'email' => 'bar',]],
+            ['name' => 'bar2', 'email' => 'foo2', 'data' => ['name' => 'foo', 'email' => 'bar',]]
+        ], ['email']);
+
+        $this->assertEquals(2, $result);
+    }
+
     public function testTouch()
     {
         Carbon::setTestNow($now = '2017-10-10 10:10:10');

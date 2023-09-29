@@ -9,6 +9,7 @@ use Illuminate\Contracts\Database\Eloquent\Builder as BuilderContract;
 use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Concerns\BuildsQueries;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Database\Eloquent\Concerns\QueriesRelationships;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -1075,16 +1076,13 @@ class Builder implements BuilderContract
             $values = [$values];
         }
 
-        
-        $castKeys = array_keys(array_filter($this->model->getCasts(), function ($value) {
-            return in_array($value, ["array", "json"]);
-        }));
-
+        $castKeys = array_keys(array_filter($this->model->getCasts(),
+            fn ($value) => in_array($value, ['array', 'json'])));
 
         array_walk($values, function (&$value) use ($castKeys) {
             foreach ($castKeys as $key) {
                 if (isset($value[$key]) && is_array($value[$key])) {
-                    $value[$key] = \Illuminate\Database\Eloquent\Casts\Json::encode($value[$key]);
+                    $value[$key] = Json::encode($value[$key]);
                 }
             }
         });
